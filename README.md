@@ -12,4 +12,5 @@ El sistema se implementará con un backend en Spring Boot (Java), un cliente de 
 ## Alumno
 
 Ángel Galera
+José Antonio Plaza
 
