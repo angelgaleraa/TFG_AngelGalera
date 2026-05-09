@@ -1,9 +1,14 @@
 target/
+target-backend/
+.build-backend/
+out/
+*.log
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
 
 ### IntelliJ IDEA ###
+.idea/
 .idea/modules.xml
 .idea/jarRepositories.xml
 .idea/compiler.xml
@@ -33,6 +38,16 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Local secrets ###
+.env
+*.env
+*.env.local
+cloud-db.env.ps1
+.secrets/
+
+### Database exports ###
+database/exports/
 
 ### Mac OS ###
 .DS_Store
