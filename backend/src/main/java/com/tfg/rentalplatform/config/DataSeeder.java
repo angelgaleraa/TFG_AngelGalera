@@ -32,10 +32,14 @@ public class DataSeeder {
     @Bean
     CommandLineRunner seedData() {
         return args -> {
+            // Solo se cargan datos de demostracion en bases nuevas.
+            // Asi no se pisan usuarios ni reservas reales si la BD ya tiene contenido.
             if (userRepository.count() > 0) {
                 return;
             }
 
+            // Usuarios de prueba para probar rapidamente los roles principales:
+            // administrador, propietarios y arrendatarios.
             User admin = new User();
             admin.setName("Admin");
             admin.setEmail("admin@test.com");
@@ -72,6 +76,7 @@ public class DataSeeder {
             renter2.setRole(UserRole.USER);
             renter2 = userRepository.save(renter2);
 
+            // Catalogo inicial con objetos en distintos estados para mostrar casos reales en la interfaz.
             Item drill = new Item();
             drill.setOwner(owner);
             drill.setTitle("Taladro Bosch");
@@ -119,6 +124,7 @@ public class DataSeeder {
                     "Infantil", "9.00", "Málaga", "Málaga",
                     "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1", false, 2);
 
+            // Reservas, pagos, resenas y notificaciones permiten probar todos los paneles sin crear datos a mano.
             Reservation reservation = new Reservation();
             reservation.setItem(drill);
             reservation.setRenter(renter);

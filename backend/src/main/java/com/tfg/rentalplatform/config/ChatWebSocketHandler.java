@@ -21,6 +21,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+        // El cliente envia el JWT en la URL del WebSocket porque no puede usar cabeceras facilmente.
         String token = UriComponentsBuilder.fromUri(session.getUri())
                 .build()
                 .getQueryParams()
@@ -32,6 +33,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
         String email = jwtService.extractUsername(token);
         User user = userRepository.findByEmail(email).orElse(null);
+        // Si el token no corresponde a un usuario valido, se rechaza la conexion realtime.
         if (user == null || !jwtService.isTokenValid(token, user.getEmail())) {
             session.close(CloseStatus.NOT_ACCEPTABLE.withReason("Invalid token"));
             return;

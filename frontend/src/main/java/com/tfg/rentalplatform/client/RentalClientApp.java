@@ -102,6 +102,7 @@ import static com.tfg.rentalplatform.client.ui.ReviewUiFactory.updateStarRating;
 
 public class RentalClientApp extends Application {
 
+    // La aplicacion centraliza la navegacion y delega la logica de cada pantalla en controladores/fabricas.
     private static final String VIEW_CATALOG = "catalogo";
     private static final String VIEW_MY_ITEMS = "mis_objetos";
     private static final String VIEW_RESERVATIONS = "reservas";
@@ -244,6 +245,7 @@ public class RentalClientApp extends Application {
 
     @Override
     public void start(Stage stage) {
+        // Antes de mostrar la interfaz se intenta levantar el backend para que el login funcione al primer intento.
         BackendLauncher.ensureAvailable();
         loadGeoData();
         loginRoot = buildLoginRoot();
@@ -391,6 +393,7 @@ public class RentalClientApp extends Application {
         Label brandSubtitle = new Label("Panel de gestion");
         brandSubtitle.getStyleClass().add("brand-subtitle");
 
+        // El menu cambia segun el rol: el administrador ve herramientas de control y el usuario ve su actividad.
         boolean adminMode = isAdminRole();
         VBox navBox = adminMode
                 ? new VBox(10,
@@ -1221,6 +1224,7 @@ public class RentalClientApp extends Application {
     private void onAuthSuccess(Map<String, Object> response) {
         String token = String.valueOf(response.get("token"));
         Map<String, Object> user = (Map<String, Object>) response.get("user");
+        // El token se guarda en ApiClient para enviarlo automaticamente en las siguientes peticiones.
         api.setToken(token);
         currentUserId = toLong(user.get("id"));
         currentUserName = String.valueOf(user.get("name"));
@@ -1556,6 +1560,7 @@ public class RentalClientApp extends Application {
     @SuppressWarnings("unchecked")
     private void handleRealtimeChatEvent(Map<String, Object> event) {
         String type = String.valueOf(event.get("type"));
+        // Los eventos realtime actualizan solo la parte afectada para no recargar toda la aplicacion.
         if ("RESERVATION_UPDATED".equals(type)) {
             reloadCurrentReservations();
             loadNotifications();

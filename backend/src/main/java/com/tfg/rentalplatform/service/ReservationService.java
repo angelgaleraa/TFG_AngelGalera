@@ -48,6 +48,7 @@ public class ReservationService {
             throw ApiException.badRequest("RESERVATION_INVALID_DATES", "La fecha fin debe ser posterior a la fecha inicio");
         }
 
+        // Evita reservas cruzadas mientras otra solicitud sigue pendiente o aceptada.
         boolean overlaps = reservationRepository.existsOverlappingReservation(
                 item.getId(),
                 List.of(ReservationStatus.PENDING, ReservationStatus.ACCEPTED),
@@ -58,6 +59,7 @@ public class ReservationService {
             throw ApiException.badRequest("RESERVATION_OVERLAP", "Ya existe una reserva en esas fechas");
         }
 
+        // El total incluye los dias alquilados mas la comision configurada de la plataforma.
         long days = ChronoUnit.DAYS.between(request.startDate(), request.endDate());
         BigDecimal base = item.getPricePerDay().multiply(BigDecimal.valueOf(days));
         BigDecimal fee = base.multiply(platformFeePercent).divide(BigDecimal.valueOf(100));
@@ -118,6 +120,7 @@ public class ReservationService {
     public ReservationDtos.ReservationResponse accept(Long reservationId, AuthenticatedUser currentUser) {
         Reservation reservation = reservationRepository.findByIdAndItemOwnerId(reservationId, currentUser.id())
                 .orElseThrow(() -> ApiException.notFound("RESERVATION_NOT_FOUND", "Reserva no encontrada"));
+        // El propietario transforma una solicitud pendiente en reserva aceptada y se genera el pago.
         if (reservation.getStatus() != ReservationStatus.PENDING) {
             throw ApiException.badRequest("RESERVATION_NOT_PENDING", "Solo se pueden aceptar reservas pendientes");
         }
@@ -151,6 +154,7 @@ public class ReservationService {
     public ReservationDtos.ReservationResponse cancel(Long reservationId, AuthenticatedUser currentUser) {
         Reservation reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> ApiException.notFound("RESERVATION_NOT_FOUND", "Reserva no encontrada"));
+        // La cancelacion puede hacerla el arrendatario o el propietario, pero con reglas distintas.
         boolean isRenter = reservation.getRenter().getId().equals(currentUser.id());
         boolean isOwner = reservation.getItem().getOwner().getId().equals(currentUser.id());
         if (!isRenter && !isOwner) {
@@ -167,6 +171,7 @@ public class ReservationService {
         }
         reservation.setStatus(ReservationStatus.CANCELED);
         reservation.setUpdatedAt(LocalDateTime.now());
+        // Si ya habia pago capturado, cancelar la reserva lo marca como reembolsado.
         if (previousStatus == ReservationStatus.ACCEPTED) {
             paymentService.refundPaymentForReservation(reservation.getId());
         }
@@ -204,6 +209,7 @@ public class ReservationService {
     }
 
     private void notifyReservationUpdateAfterCommit(ReservationDtos.ReservationResponse response, Long... userIds) {
+        // Se notifica despues del commit para no enviar eventos de cambios que podrian revertirse.
         if (!TransactionSynchronizationManager.isSynchronizationActive()) {
             for (Long userId : userIds) {
                 chatRealtimeService.sendReservationUpdateToUser(userId, response);

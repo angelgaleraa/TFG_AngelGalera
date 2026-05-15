@@ -16,6 +16,7 @@ public final class BackendLauncher {
     }
 
     public static void ensureAvailable() {
+        // JavaFX depende de la API REST; si ya responde, no se arranca otro backend.
         if (backendResponds()) {
             return;
         }
@@ -28,6 +29,7 @@ public final class BackendLauncher {
             Path projectDir = backendScript.getParent();
             Path outLog = projectDir.resolve("backend-run.out.log");
             Path errLog = projectDir.resolve("backend-run.err.log");
+            // El script se ejecuta en una consola aparte y carga la configuracion cloud de Aiven.
             new ProcessBuilder(
                     "powershell",
                     "-NoProfile",
@@ -41,6 +43,7 @@ public final class BackendLauncher {
                     .redirectOutput(ProcessBuilder.Redirect.appendTo(outLog.toFile()))
                     .redirectError(ProcessBuilder.Redirect.appendTo(errLog.toFile()))
                     .start();
+            // Se espera a que Spring Boot termine de levantar Tomcat antes de continuar con la app.
             for (int i = 0; i < 30; i++) {
                 Thread.sleep(1000);
                 if (backendResponds()) {
@@ -55,6 +58,7 @@ public final class BackendLauncher {
 
     private static boolean backendResponds() {
         try {
+            // /api/items puede devolver 401 si no hay sesion; lo importante es que no sea un fallo 5xx.
             HttpClient client = HttpClient.newBuilder()
                     .connectTimeout(java.time.Duration.ofSeconds(2))
                     .build();
