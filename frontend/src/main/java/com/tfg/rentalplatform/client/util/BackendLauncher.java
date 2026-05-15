@@ -44,7 +44,7 @@ public final class BackendLauncher {
                     .redirectError(ProcessBuilder.Redirect.appendTo(errLog.toFile()))
                     .start();
             // Se espera a que Spring Boot termine de levantar Tomcat antes de continuar con la app.
-            for (int i = 0; i < 30; i++) {
+            for (int i = 0; i < 150; i++) {
                 Thread.sleep(1000);
                 if (backendResponds()) {
                     return;
