@@ -30,6 +30,7 @@ public class PaymentService {
         Reservation reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> ApiException.notFound("RESERVATION_NOT_FOUND", "Reserva no encontrada"));
         return paymentRepository.findByReservationId(reservationId).orElseGet(() -> {
+            // El pago es simulado: se registra como capturado sin integrar una pasarela real.
             Payment payment = new Payment();
             payment.setReservation(reservation);
             payment.setPayer(reservation.getRenter());
@@ -54,6 +55,7 @@ public class PaymentService {
         if (payment.getStatus() == PaymentStatus.REFUNDED) {
             return payment;
         }
+        // Reembolsar no borra el pago; cambia su estado para conservar el historial.
         payment.setStatus(PaymentStatus.REFUNDED);
         payment.setUpdatedAt(LocalDateTime.now());
         notificationService.create(payment.getPayer().getId(), NotificationType.PAYMENT_REFUNDED,

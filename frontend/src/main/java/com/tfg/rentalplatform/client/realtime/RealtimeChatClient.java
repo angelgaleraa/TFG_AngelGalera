@@ -39,6 +39,7 @@ public class RealtimeChatClient {
         }
 
         disconnect();
+        // El token autentica la conexion WebSocket igual que en las peticiones REST.
         String encodedToken = URLEncoder.encode(token, StandardCharsets.UTF_8);
         httpClient.newWebSocketBuilder()
                 .buildAsync(URI.create("ws://localhost:8081/ws/chat?token=" + encodedToken), new WebSocket.Listener() {
@@ -48,6 +49,7 @@ public class RealtimeChatClient {
                     public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
                         buffer.append(data);
                         if (last) {
+                            // Los mensajes pueden llegar troceados; solo se procesan cuando llega el ultimo fragmento.
                             String payload = buffer.toString();
                             buffer.setLength(0);
                             Platform.runLater(() -> handlePayload(payload));

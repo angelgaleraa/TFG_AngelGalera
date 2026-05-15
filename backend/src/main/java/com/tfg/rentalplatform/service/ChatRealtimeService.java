@@ -20,6 +20,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class ChatRealtimeService {
 
     private final ObjectMapper objectMapper;
+    // Un usuario puede tener varias ventanas/sesiones abiertas al mismo tiempo.
     private final Map<Long, List<WebSocketSession>> sessionsByUser = new ConcurrentHashMap<>();
 
     public void register(Long userId, WebSocketSession session) {
@@ -55,6 +56,7 @@ public class ChatRealtimeService {
             return;
         }
         try {
+            // Todos los eventos realtime comparten el mismo formato: tipo + datos.
             String payload = objectMapper.writeValueAsString(Map.of(
                     "type", type,
                     "payload", payloadObject
