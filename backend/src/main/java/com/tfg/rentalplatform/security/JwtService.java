@@ -26,6 +26,7 @@ public class JwtService {
     ) {
         byte[] bytes;
         try {
+            // Permite usar secretos en Base64 o texto plano desde la configuracion.
             bytes = Decoders.BASE64.decode(secret);
         } catch (Exception ignored) {
             bytes = secret.getBytes(StandardCharsets.UTF_8);
@@ -36,6 +37,7 @@ public class JwtService {
 
     public String generateToken(JwtUserPrincipal principal) {
         Instant now = Instant.now();
+        // El token guarda el email como subject y algunos datos minimos para identificar rol y usuario.
         return Jwts.builder()
                 .subject(principal.getUsername())
                 .claims(Map.of(
@@ -65,6 +67,7 @@ public class JwtService {
     }
 
     private Claims parseClaims(String token) {
+        // Si la firma no coincide, la libreria lanza excepcion y se rechaza el token.
         return Jwts.parser()
                 .verifyWith(key)
                 .build()

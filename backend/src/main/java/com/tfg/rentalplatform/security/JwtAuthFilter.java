@@ -25,6 +25,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+        // Cada peticion protegida debe traer el token en Authorization: Bearer <token>.
         String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
@@ -39,6 +40,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return;
         }
         if (SecurityContextHolder.getContext().getAuthentication() == null) {
+            // Si el token es valido, Spring Security reconoce al usuario durante esta peticion.
             JwtUserPrincipal principal = (JwtUserPrincipal) userDetailsService.loadUserByUsername(username);
             if (jwtService.isTokenValid(token, principal)) {
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
